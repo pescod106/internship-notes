@@ -1,3 +1,4 @@
-# My Awesome Book
+# 实习过程中的一些笔记
 
-This file file serves as your book's preface, a great place to describe your book's content and ideas.
+按日期整理,没有按照指示类型排序
+
