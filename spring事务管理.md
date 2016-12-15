@@ -519,39 +519,164 @@ _注：以下配置代码参考自_[_Spring事务配置的五种方式_](http://
 （3）使用拦截器
 
 ```
-<?xml version="1.0" encoding="UTF-8"?><beansxmlns="http://www.springframework.org/schema/beans"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:context="http://www.springframework.org/schema/context"xmlns:aop="http://www.springframework.org/schema/aop"xsi:schemaLocation="http://www.springframework.org/schema/beans
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            http://www.springframework.org/schema/context
            http://www.springframework.org/schema/context/spring-context-2.5.xsd
-           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"><beanid="sessionFactory"class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"><propertyname="configLocation"value="classpath:hibernate.cfg.xml"/><propertyname="configurationClass"value="org.hibernate.cfg.AnnotationConfiguration"/></bean><!-- 定义事务管理器（声明式的事务） --><beanid="transactionManager"class="org.springframework.orm.hibernate3.HibernateTransactionManager"><propertyname="sessionFactory"ref="sessionFactory"/></bean><beanid="transactionInterceptor"class="org.springframework.transaction.interceptor.TransactionInterceptor"><propertyname="transactionManager"ref="transactionManager"/><!-- 配置事务属性 --><propertyname="transactionAttributes"><props><propkey="*">PROPAGATION_REQUIRED</prop></props></property></bean><beanclass="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator"><propertyname="beanNames"><list><value>*Dao</value></list></property><propertyname="interceptorNames"><list><value>transactionInterceptor</value></list></property></bean><!-- 配置DAO --><beanid="userDao"class="com.bluesky.spring.dao.UserDaoImpl"><propertyname="sessionFactory"ref="sessionFactory"/></bean></beans>
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd">
+
+    <bean id="sessionFactory" 
+            class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"> 
+        <property name="configLocation" value="classpath:hibernate.cfg.xml" /> 
+        <property name="configurationClass" value="org.hibernate.cfg.AnnotationConfiguration" />
+    </bean> 
+
+    <!-- 定义事务管理器（声明式的事务） --> 
+    <bean id="transactionManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean> 
+
+    <bean id="transactionInterceptor" 
+        class="org.springframework.transaction.interceptor.TransactionInterceptor"> 
+        <property name="transactionManager" ref="transactionManager" /> 
+        <!-- 配置事务属性 --> 
+        <property name="transactionAttributes"> 
+            <props> 
+                <prop key="*">PROPAGATION_REQUIRED</prop> 
+            </props> 
+        </property> 
+    </bean>
+
+    <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator"> 
+        <property name="beanNames"> 
+            <list> 
+                <value>*Dao</value>
+            </list> 
+        </property> 
+        <property name="interceptorNames"> 
+            <list> 
+                <value>transactionInterceptor</value> 
+            </list> 
+        </property> 
+    </bean> 
+
+    <!-- 配置DAO -->
+    <bean id="userDao" class="com.bluesky.spring.dao.UserDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+</beans>
 ```
 
 （4）使用tx标签配置的拦截器
 
 ```
-<?xml version="1.0" encoding="UTF-8"?><beansxmlns="http://www.springframework.org/schema/beans"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:context="http://www.springframework.org/schema/context"xmlns:aop="http://www.springframework.org/schema/aop"xmlns:tx="http://www.springframework.org/schema/tx"xsi:schemaLocation="http://www.springframework.org/schema/beans
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            http://www.springframework.org/schema/context
            http://www.springframework.org/schema/context/spring-context-2.5.xsd
            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
-           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"><context:annotation-config/><context:component-scanbase-package="com.bluesky"/><beanid="sessionFactory"class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"><propertyname="configLocation"value="classpath:hibernate.cfg.xml"/><propertyname="configurationClass"value="org.hibernate.cfg.AnnotationConfiguration"/></bean><!-- 定义事务管理器（声明式的事务） --><beanid="transactionManager"class="org.springframework.orm.hibernate3.HibernateTransactionManager"><propertyname="sessionFactory"ref="sessionFactory"/></bean><tx:adviceid="txAdvice"transaction-manager="transactionManager"><tx:attributes><tx:methodname="*"propagation="REQUIRED"/></tx:attributes></tx:advice><aop:config><aop:pointcutid="interceptorPointCuts"expression="execution(* com.bluesky.spring.dao.*.*(..))"/><aop:advisoradvice-ref="txAdvice"pointcut-ref="interceptorPointCuts"/></aop:config></beans>
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <context:annotation-config />
+    <context:component-scan base-package="com.bluesky" />
+
+    <bean id="sessionFactory" 
+            class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"> 
+        <property name="configLocation" value="classpath:hibernate.cfg.xml" /> 
+        <property name="configurationClass" value="org.hibernate.cfg.AnnotationConfiguration" />
+    </bean> 
+
+    <!-- 定义事务管理器（声明式的事务） --> 
+    <bean id="transactionManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="*" propagation="REQUIRED" />
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <aop:pointcut id="interceptorPointCuts"
+            expression="execution(* com.bluesky.spring.dao.*.*(..))" />
+        <aop:advisor advice-ref="txAdvice"
+            pointcut-ref="interceptorPointCuts" />       
+    </aop:config>     
+</beans>
 ```
 
 （5）全注解
 
 ```
-<?xml version="1.0" encoding="UTF-8"?><beansxmlns="http://www.springframework.org/schema/beans"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:context="http://www.springframework.org/schema/context"xmlns:aop="http://www.springframework.org/schema/aop"xmlns:tx="http://www.springframework.org/schema/tx"xsi:schemaLocation="http://www.springframework.org/schema/beans
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            http://www.springframework.org/schema/context
            http://www.springframework.org/schema/context/spring-context-2.5.xsd
            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
-           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"><context:annotation-config/><context:component-scanbase-package="com.bluesky"/><tx:annotation-driventransaction-manager="transactionManager"/><beanid="sessionFactory"class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"><propertyname="configLocation"value="classpath:hibernate.cfg.xml"/><propertyname="configurationClass"value="org.hibernate.cfg.AnnotationConfiguration"/></bean><!-- 定义事务管理器（声明式的事务） --><beanid="transactionManager"class="org.springframework.orm.hibernate3.HibernateTransactionManager"><propertyname="sessionFactory"ref="sessionFactory"/></bean></beans>
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <context:annotation-config />
+    <context:component-scan base-package="com.bluesky" />
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <bean id="sessionFactory" 
+            class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"> 
+        <property name="configLocation" value="classpath:hibernate.cfg.xml" /> 
+        <property name="configurationClass" value="org.hibernate.cfg.AnnotationConfiguration" />
+    </bean> 
+
+    <!-- 定义事务管理器（声明式的事务） --> 
+    <bean id="transactionManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+
+</beans>
 ```
 
 此时在DAO上需加上@Transactional注解，如下：
 
 ```
-package com.bluesky.spring.dao;import java.util.List;import org.hibernate.SessionFactory;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.orm.hibernate3.support.HibernateDaoSupport;import org.springframework.stereotype.Component;import com.bluesky.spring.domain.User;@Transactional@Component("userDao")publicclassUserDaoImplextendsHibernateDaoSupportimplementsUserDao{publicList<User>listUsers(){returnthis.getSession().createQuery("from User").list();}}
+package com.bluesky.spring.dao;
+
+import java.util.List;
+
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.stereotype.Component;
+
+import com.bluesky.spring.domain.User;
+
+@Transactional
+@Component("userDao")
+public class UserDaoImpl extends HibernateDaoSupport implements UserDao {
+
+    public List<User> listUsers() {
+        return this.getSession().createQuery("from User").list();
+    }  
+}
 ```
 
 ## 4.2 一个声明式事务的实例 {#42-一个声明式事务的实例}
@@ -566,37 +691,125 @@ book\_stock\(isbn, stock\)
 然后是XML配置
 
 ```
-<beansxmlns="http://www.springframework.org/schema/beans"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:context="http://www.springframework.org/schema/context"xmlns:aop="http://www.springframework.org/schema/aop"xmlns:tx="http://www.springframework.org/schema/tx"xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:tx="http://www.springframework.org/schema/tx"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 http://www.springframework.org/schema/context
 http://www.springframework.org/schema/context/spring-context-3.0.xsd
 http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
-http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"><importresource="applicationContext-db.xml"/><context:component-scanbase-package="com.springinaction.transaction"></context:component-scan><tx:annotation-driventransaction-manager="txManager"/><beanid="transactionManager"class="org.springframework.jdbc.datasource.DataSourceTransactionManager"><propertyname="dataSource"ref="dataSource"/></bean></beans>
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <import resource="applicationContext-db.xml" />
+
+    <context:component-scan
+        base-package="com.springinaction.transaction">
+    </context:component-scan>
+
+    <tx:annotation-driven transaction-manager="txManager"/>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+</beans>
 ```
 
 使用的类  
 BookShopDao
 
 ```
-package com.springinaction.transaction;publicinterfaceBookShopDao{// 根据书号获取书的单价publicintfindBookPriceByIsbn(String isbn);// 更新书的库存，使书号对应的库存-1publicvoidupdateBookStock(String isbn);// 更新用户的账户余额：account的balance-pricepublicvoidupdateUserAccount(String username,int price);}
+package com.springinaction.transaction;
+
+public interface BookShopDao {
+    // 根据书号获取书的单价
+    public int findBookPriceByIsbn(String isbn);
+    // 更新书的库存，使书号对应的库存-1
+    public void updateBookStock(String isbn);
+    // 更新用户的账户余额：account的balance-price
+    public void updateUserAccount(String username, int price);
+}
 ```
 
 BookShopDaoImpl
 
 ```
-package com.springinaction.transaction;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.jdbc.core.JdbcTemplate;import org.springframework.stereotype.Repository;@Repository("bookShopDao")publicclassBookShopDaoImplimplementsBookShopDao{@AutowiredprivateJdbcTemplateJdbcTemplate;@OverridepublicintfindBookPriceByIsbn(String isbn){String sql ="SELECT price FROM book WHERE isbn = ?";returnJdbcTemplate.queryForObject(sql,Integer.class, isbn);}@OverridepublicvoidupdateBookStock(String isbn){//检查书的库存是否足够，若不够，则抛出异常String sql2 ="SELECT stock FROM book_stock WHERE isbn = ?";int stock =JdbcTemplate.queryForObject(sql2,Integer.class, isbn);if(stock ==0){thrownewBookStockException("库存不足！");}String sql ="UPDATE book_stock SET stock = stock - 1 WHERE isbn = ?";JdbcTemplate.update(sql, isbn);}@OverridepublicvoidupdateUserAccount(String username,int price){//检查余额是否不足，若不足，则抛出异常String sql2 ="SELECT balance FROM account WHERE username = ?";int balance =JdbcTemplate.queryForObject(sql2,Integer.class, username);if(balance < price){thrownewUserAccountException("余额不足！");}String sql ="UPDATE account SET balance = balance - ? WHERE username = ?";JdbcTemplate.update(sql, price, username);}}
+package com.springinaction.transaction;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository("bookShopDao")
+public class BookShopDaoImpl implements BookShopDao {
+
+    @Autowired
+    private JdbcTemplate JdbcTemplate;
+
+    @Override
+    public int findBookPriceByIsbn(String isbn) {
+        String sql = "SELECT price FROM book WHERE isbn = ?";
+
+        return JdbcTemplate.queryForObject(sql, Integer.class, isbn);
+    }
+
+    @Override
+    public void updateBookStock(String isbn) {
+        //检查书的库存是否足够，若不够，则抛出异常
+        String sql2 = "SELECT stock FROM book_stock WHERE isbn = ?";
+        int stock = JdbcTemplate.queryForObject(sql2, Integer.class, isbn);
+        if (stock == 0) {
+            throw new BookStockException("库存不足！");
+        }
+        String sql = "UPDATE book_stock SET stock = stock - 1 WHERE isbn = ?";
+        JdbcTemplate.update(sql, isbn);
+    }
+
+    @Override
+    public void updateUserAccount(String username, int price) {
+        //检查余额是否不足，若不足，则抛出异常
+        String sql2 = "SELECT balance FROM account WHERE username = ?";
+        int balance = JdbcTemplate.queryForObject(sql2, Integer.class, username);
+        if (balance < price) {
+            throw new UserAccountException("余额不足！");
+        }       
+        String sql = "UPDATE account SET balance = balance - ? WHERE username = ?";
+        JdbcTemplate.update(sql, price, username);
+    }
+
+}
 ```
 
 BookShopService
 
 ```
-package com.springinaction.transaction;publicinterfaceBookShopService{publicvoidpurchase(String username,String isbn);}
+package com.springinaction.transaction;
+public interface BookShopService {
+     public void purchase(String username, String isbn);
+}
 ```
 
 BookShopServiceImpl
 
 ```
-package com.springinaction.transaction;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.stereotype.Service;import org.springframework.transaction.annotation.Isolation;import org.springframework.transaction.annotation.Propagation;import org.springframework.transaction.annotation.Transactional;@Service("bookShopService")publicclassBookShopServiceImplimplementsBookShopService{@AutowiredprivateBookShopDao bookShopDao;/**
+package com.springinaction.transaction;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service("bookShopService")
+public class BookShopServiceImpl implements BookShopService {
+
+    @Autowired
+    private BookShopDao bookShopDao;
+
+    /**
      * 1.添加事务注解
      * 使用propagation 指定事务的传播行为，即当前的事务方法被另外一个事务方法调用时如何使用事务。
      * 默认取值为REQUIRED，即使用调用方法的事务
@@ -606,51 +819,180 @@ package com.springinaction.transaction;import org.springframework.beans.factory.
      * 3.默认情况下 Spring 的声明式事务对所有的运行时异常进行回滚，也可以通过对应的属性进行设置。通常情况下，默认值即可。
      * 4.使用readOnly 指定事务是否为只读。 表示这个事务只读取数据但不更新数据，这样可以帮助数据库引擎优化事务。若真的是一个只读取数据库值得方法，应设置readOnly=true
      * 5.使用timeOut 指定强制回滚之前事务可以占用的时间。
-     */@Transactional(propagation=Propagation.REQUIRES_NEW,
+     */
+    @Transactional(propagation=Propagation.REQUIRES_NEW,
             isolation=Isolation.READ_COMMITTED,
             noRollbackFor={UserAccountException.class},
-            readOnly=true, timeout=3)@Overridepublicvoidpurchase(String username,String isbn){//1.获取书的单价int price = bookShopDao.findBookPriceByIsbn(isbn);//2.更新书的库存
-        bookShopDao.updateBookStock(isbn);//3.更新用户余额
-        bookShopDao.updateUserAccount(username, price);}}
+            readOnly=true, timeout=3)
+    @Override
+    public void purchase(String username, String isbn) {
+        //1.获取书的单价
+        int price = bookShopDao.findBookPriceByIsbn(isbn);
+        //2.更新书的库存
+        bookShopDao.updateBookStock(isbn);
+        //3.更新用户余额
+        bookShopDao.updateUserAccount(username, price);
+    }
+}
 ```
 
 Cashier
 
 ```
-package com.springinaction.transaction;import java.util.List;publicinterfaceCashier{publicvoidcheckout(String username,List<String>isbns);}
+package com.springinaction.transaction;
+import java.util.List;
+public interface Cashier {
+    public void checkout(String username, List<String>isbns);
+}
 ```
 
 CashierImpl：CashierImpl.checkout和bookShopService.purchase联合测试了事务的传播行为
 
 ```
-package com.springinaction.transaction;import java.util.List;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.stereotype.Service;import org.springframework.transaction.annotation.Transactional;@Service("cashier")publicclassCashierImplimplementsCashier{@AutowiredprivateBookShopService bookShopService;@Transactional@Overridepublicvoidcheckout(String username,List<String> isbns){for(String isbn : isbns){
-            bookShopService.purchase(username, isbn);}}}
+package com.springinaction.transaction;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service("cashier")
+public class CashierImpl implements Cashier {
+    @Autowired
+    private BookShopService bookShopService;
+
+    @Transactional
+    @Override
+    public void checkout(String username, List<String> isbns) {
+        for(String isbn : isbns) {
+            bookShopService.purchase(username, isbn);
+        }
+    }
+}
 ```
 
 BookStockException
 
 ```
-package com.springinaction.transaction;publicclassBookStockExceptionextendsRuntimeException{privatestaticfinallong serialVersionUID =1L;publicBookStockException(){super();// TODO Auto-generated constructor stub}publicBookStockException(String arg0,Throwable arg1,boolean arg2,boolean arg3){super(arg0, arg1, arg2, arg3);// TODO Auto-generated constructor stub}publicBookStockException(String arg0,Throwable arg1){super(arg0, arg1);// TODO Auto-generated constructor stub}publicBookStockException(String arg0){super(arg0);// TODO Auto-generated constructor stub}publicBookStockException(Throwable arg0){super(arg0);// TODO Auto-generated constructor stub}}
+package com.springinaction.transaction;
+public class BookStockException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
+    public BookStockException() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+    public BookStockException(String arg0, Throwable arg1, boolean arg2,
+            boolean arg3) {
+        super(arg0, arg1, arg2, arg3);
+        // TODO Auto-generated constructor stub
+    }
+
+    public BookStockException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+        // TODO Auto-generated constructor stub
+    }
+
+    public BookStockException(String arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
+    }
+
+    public BookStockException(Throwable arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
+    }
+}
 ```
 
 UserAccountException
 
 ```
-package com.springinaction.transaction;publicclassUserAccountExceptionextendsRuntimeException{privatestaticfinallong serialVersionUID =1L;publicUserAccountException(){super();// TODO Auto-generated constructor stub}publicUserAccountException(String arg0,Throwable arg1,boolean arg2,boolean arg3){super(arg0, arg1, arg2, arg3);// TODO Auto-generated constructor stub}publicUserAccountException(String arg0,Throwable arg1){super(arg0, arg1);// TODO Auto-generated constructor stub}publicUserAccountException(String arg0){super(arg0);// TODO Auto-generated constructor stub}publicUserAccountException(Throwable arg0){super(arg0);// TODO Auto-generated constructor stub}}
+package com.springinaction.transaction;
+public class UserAccountException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
+    public UserAccountException() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+    public UserAccountException(String arg0, Throwable arg1, boolean arg2,
+            boolean arg3) {
+        super(arg0, arg1, arg2, arg3);
+        // TODO Auto-generated constructor stub
+    }
+
+    public UserAccountException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+        // TODO Auto-generated constructor stub
+    }
+
+    public UserAccountException(String arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
+    }
+
+    public UserAccountException(Throwable arg0) {
+        super(arg0);
+        // TODO Auto-generated constructor stub
+    }
+}
+
 ```
 
 测试类
 
 ```
-package com.springinaction.transaction;import java.util.Arrays;import org.junit.Test;import org.springframework.context.ApplicationContext;import org.springframework.context.support.ClassPathXmlApplicationContext;publicclassSpringTransitionTest{privateApplicationContext ctx =null;privateBookShopDao bookShopDao =null;privateBookShopService bookShopService =null;privateCashier cashier =null;{
-        ctx =newClassPathXmlApplicationContext("config/transaction.xml");
+package com.springinaction.transaction;
+
+import java.util.Arrays;
+
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class SpringTransitionTest {
+
+    private ApplicationContext ctx = null;
+    private BookShopDao bookShopDao = null;
+    private BookShopService bookShopService = null;
+    private Cashier cashier = null;
+    {
+        ctx = new ClassPathXmlApplicationContext("config/transaction.xml");
         bookShopDao = ctx.getBean(BookShopDao.class);
         bookShopService = ctx.getBean(BookShopService.class);
-        cashier = ctx.getBean(Cashier.class);}@TestpublicvoidtestBookShopDaoFindPriceByIsbn(){System.out.println(bookShopDao.findBookPriceByIsbn("1001"));}@TestpublicvoidtestBookShopDaoUpdateBookStock(){
-        bookShopDao.updateBookStock("1001");}@TestpublicvoidtestBookShopDaoUpdateUserAccount(){
-        bookShopDao.updateUserAccount("AA",100);}@TestpublicvoidtestBookShopService(){
-        bookShopService.purchase("AA","1001");}@TestpublicvoidtestTransactionPropagation(){
-        cashier.checkout("AA",Arrays.asList("1001","1002"));}}
+        cashier = ctx.getBean(Cashier.class);
+    }
+
+    @Test
+    public void testBookShopDaoFindPriceByIsbn() {
+        System.out.println(bookShopDao.findBookPriceByIsbn("1001"));
+    }
+
+    @Test
+    public void testBookShopDaoUpdateBookStock(){
+        bookShopDao.updateBookStock("1001");
+    }
+
+    @Test
+    public void testBookShopDaoUpdateUserAccount(){
+        bookShopDao.updateUserAccount("AA", 100);
+    }
+    @Test
+    public void testBookShopService(){
+        bookShopService.purchase("AA", "1001");
+    }
+
+    @Test
+    public void testTransactionPropagation(){
+        cashier.checkout("AA", Arrays.asList("1001", "1002"));
+    }
+}
 ```
 
 _OVER_
