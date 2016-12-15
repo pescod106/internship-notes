@@ -443,7 +443,7 @@ _注：以下配置代码参考自_[_Spring事务配置的五种方式_](http://
 
 根据代理机制的不同，总结了五种Spring事务的配置方式，配置文件如下：
 
-（1）每个Bean都有一个代理    
+（1）每个Bean都有一个代理
 
 ```
 <?xml version="1.0" encoding="UTF-8"?>
@@ -482,11 +482,38 @@ _注：以下配置代码参考自_[_Spring事务配置的五种方式_](http://
 （2）所有Bean共享一个代理基类
 
 ```
-<?xml version="1.0" encoding="UTF-8"?><beansxmlns="http://www.springframework.org/schema/beans"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:context="http://www.springframework.org/schema/context"xmlns:aop="http://www.springframework.org/schema/aop"xsi:schemaLocation="http://www.springframework.org/schema/beans
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:context="http://www.springframework.org/schema/context"xmlns:aop="http://www.springframework.org/schema/aop"xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            http://www.springframework.org/schema/context
            http://www.springframework.org/schema/context/spring-context-2.5.xsd
-           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"><beanid="sessionFactory"class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"><propertyname="configLocation"value="classpath:hibernate.cfg.xml"/><propertyname="configurationClass"value="org.hibernate.cfg.AnnotationConfiguration"/></bean><!-- 定义事务管理器（声明式的事务） --><beanid="transactionManager"class="org.springframework.orm.hibernate3.HibernateTransactionManager"><propertyname="sessionFactory"ref="sessionFactory"/></bean><beanid="transactionBase"class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"lazy-init="true"abstract="true"><!-- 配置事务管理器 --><propertyname="transactionManager"ref="transactionManager"/><!-- 配置事务属性 --><propertyname="transactionAttributes"><props><propkey="*">PROPAGATION_REQUIRED</prop></props></property></bean><!-- 配置DAO --><beanid="userDaoTarget"class="com.bluesky.spring.dao.UserDaoImpl"><propertyname="sessionFactory"ref="sessionFactory"/></bean><beanid="userDao"parent="transactionBase"><propertyname="target"ref="userDaoTarget"/></bean></beans>
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"> 
+           <bean id="sessionFactory"class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+               <propertyname="configLocation"value="classpath:hibernate.cfg.xml"/>
+               <propertyname="configurationClass"value="org.hibernate.cfg.AnnotationConfiguration"/>
+           </bean>
+           <!-- 定义事务管理器（声明式的事务） -->
+           <bean id="transactionManager"class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+               <propertyname="sessionFactory"ref="sessionFactory"/>
+           </bean>
+           <bean id="transactionBase"class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"lazy-init="true"abstract="true">
+               <!-- 配置事务管理器 -->
+               <propertyname="transactionManager"ref="transactionManager"/>
+               <!-- 配置事务属性 -->
+               <property name="transactionAttributes">
+                   <props>
+                       <prop key="*">PROPAGATION_REQUIRED</prop>
+                   </props>
+               </property>
+           </bean>
+           <!-- 配置DAO -->
+           <bean id="userDaoTarget"class="com.bluesky.spring.dao.UserDaoImpl">
+                 <propertyname="sessionFactory"ref="sessionFactory"/>
+           </bean>
+           <bean id="userDao"parent="transactionBase">
+               <propertyname="target"ref="userDaoTarget"/>
+           </bean>
+</beans>
 ```
 
 （3）使用拦截器
